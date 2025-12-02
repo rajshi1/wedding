@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding Card Generator</title>
+    
+    <!-- 1. Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cinzel:wght@400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">
+    
+    <!-- 3. Icon Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- 4. Custom Styles -->
+    <style>
+        .font-script { font-family: 'Great Vibes', cursive; }
+        .font-classic { font-family: 'Playfair Display', serif; }
+        .font-header { font-family: 'Cinzel', serif; }
+        .font-hindi { font-family: 'Tiro Devanagari Hindi', serif; }
+
+        /* Animation for screens */
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Print Settings - Critical */
+        @media print {
+            @page { margin: 0; size: auto; }
+            body { background: white; }
+            /* Hide all screens by default */
+            #screen-welcome, #screen-editor, #screen-preview-ui { display: none !important; }
+            
+            /* Only show the card container */
+            #print-area { 
+                display: flex !important; 
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                align-items: center;
+                justify-content: center;
+                background: white;
+            }
+            .card-inner {
+                border: none !important;
+                box-shadow: none !important;
+                transform: scale(1) !important;
+                /* Ensure background prints */
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            /* Hide buttons inside the preview area if any */
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-stone-100 text-stone-800 font-serif selection:bg-rose-200">
+
+    <!-- SCREEN 1: WELCOME (Popup Style) -->
+    <div id="screen-welcome" class="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-sm p-4 fade-in">
+        <div class="bg-white p-8 md:p-12 rounded-lg shadow-2xl max-w-lg w-full text-center border-t-4 border-rose-900 relative overflow-hidden">
+             <!-- Decorative bg icon -->
+            <i data-lucide="heart" class="absolute -top-6 -right-6 w-32 h-32 text-rose-50 opacity-50"></i>
+            
+            <h1 class="text-4xl font-header text-rose-900 mb-4">Wedding Studio</h1>
+            <p class="text-stone-600 font-classic text-lg mb-8">
+                Design the perfect invitation for your special day. customize, preview, and print instantly.
+            </p>
+            
+            <button onclick="goToScreen('editor')" class="group relative inline-flex items-center justify-center gap-2 bg-rose-900 text-white px-8 py-3 rounded-full text-lg hover:bg-rose-800 transition shadow-lg w-full md:w-auto">
+                <span>Start Designing</span>
+                <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: EDITOR (Enter Details) -->
+    <div id="screen-editor" class="hidden min-h-screen flex flex-col items-center justify-center p-4 fade-in">
+        <div class="w-full max-w-3xl bg-white p-6 md:p-10 rounded-xl shadow-xl my-8">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-header text-stone-800">Enter Details</h2>
+                <div class="h-1 w-16 bg-rose-900 mx-auto mt-2"></div>
+            </div>
+
+            <form id="cardForm" class="space-y-6">
+                <!-- Names -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold uppercase tracking-wider text-stone-500 mb-2">Groom's Name</label>
+                        <input type="text" id="input-groom" value="Arjun" class="w-full p-3 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-200 bg-stone-50 transition" placeholder="e.g. Arjun">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold uppercase tracking-wider text-stone-500 mb-2">Bride's Name</label>
+                        <input type="text" id="input-bride" value="Priya" class="w-full p-3 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-200 bg-stone-50 transition" placeholder="e.g. Priya">
+                    </div>
+                </div>
+
+                <!-- Guest -->
+                <div>
+                    <label class="block text-sm font-bold uppercase tracking-wider text-stone-500 mb-2">Guest Name(s)</label>
+                    <input type="text" id="input-guest" value="Mr. & Mrs. Mahto" class="w-full p-3 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-200 bg-stone-50 transition" placeholder="Who are you inviting?">
+                </div>
+
+                <!-- Date & Time -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold uppercase tracking-wider text-stone-500 mb-2">Date</label>
+                        <input type="date" id="input-date" value="2025-12-15" class="w-full p-3 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-200 bg-stone-50 transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold uppercase tracking-wider text-stone-500 mb-2">Time</label>
+                        <input type="text" id="input-time" value="7:00 PM" class="w-full p-3 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-200 bg-stone-50 transition" placeholder="e.g. 7:00 PM">
+                    </div>
+                </div>
+
+                <!-- Venue -->
+                <div>
+                    <label class="block text-sm font-bold uppercase tracking-wider text-stone-500 mb-2">Venue</label>
+                    <input type="text" id="input-venue" value="The Grand Palace Hotel, Mumbai" class="w-full p-3 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-200 bg-stone-50 transition" placeholder="Venue Address">
+                </div>
+
+                <!-- Message -->
+                <div>
+                    <label class="block text-sm font-bold uppercase tracking-wider text-stone-500 mb-2">Invitation Message</label>
+                    <textarea id="input-message" rows="3" class="w-full p-3 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-200 bg-stone-50 resize-none transition">We solicit your gracious presence to bless the couple as they embark on this beautiful journey of love together.</textarea>
+                </div>
+            </form>
+
+            <div class="mt-8 flex justify-end">
+                <button onclick="goToScreen('preview')" class="flex items-center gap-2 bg-stone-800 text-white px-8 py-3 rounded-md hover:bg-stone-700 transition shadow-lg">
+                    <span>Preview Card</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 3: FINAL PREVIEW & PRINT -->
+    <div id="screen-preview" class="hidden min-h-screen flex flex-col items-center justify-start py-8 fade-in">
+        
+        <!-- UI Controls (Buttons) -->
+        <div id="screen-preview-ui" class="w-full max-w-4xl px-4 mb-6 flex justify-between items-center">
+            <button onclick="goToScreen('editor')" class="flex items-center gap-2 text-stone-600 hover:text-rose-900 transition font-medium bg-white px-4 py-2 rounded-md shadow-sm border border-stone-200">
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                <span>Edit / Fix Mistake</span>
+            </button>
+            
+            <div class="flex gap-3">
+                <button onclick="copyToClipboard()" id="copyBtn" class="flex items-center gap-2 border border-rose-900 text-rose-900 bg-white px-4 py-2 rounded-md hover:bg-rose-50 transition">
+                    <i data-lucide="copy" class="w-4 h-4"></i>
+                    <span id="copyText">Copy Text</span>
+                </button>
+                <button onclick="window.print()" class="flex items-center gap-2 bg-rose-900 text-white px-6 py-2 rounded-md hover:bg-rose-800 transition shadow-md">
+                    <i data-lucide="printer" class="w-4 h-4"></i>
+                    <span>Print / Save PDF</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- The Card Display Area (This part prints) -->
+        <div id="print-area" class="w-full flex justify-center p-4">
+            <!-- Updated Card Container with Red Background, Pattern, and Text Colors -->
+            <div class="card-inner w-full max-w-[600px] bg-[#960018] text-amber-100 shadow-2xl relative overflow-hidden flex flex-col items-center text-center py-12 px-8 lg:px-12"
+                 style="background-image: url('https://www.transparenttextures.com/patterns/escheresque-dark.png'); background-blend-mode: soft-light;">
+                
+                <!-- Decorative Borders -->
+                <div class="absolute top-4 left-4 border-double border-4 border-amber-400/40 opacity-50 pointer-events-none" style="width: calc(100% - 32px); height: calc(100% - 32px);"></div>
+                
+                <!-- Content -->
+                <div class="z-10 relative space-y-4 w-full">
+                    
+                    <!-- Shubh Labh Header & Photo -->
+                    <div class="flex items-center justify-center gap-6 lg:gap-10 mb-6">
+                        <div class="text-amber-300 font-bold text-2xl lg:text-3xl font-hindi drop-shadow-sm">शुभ</div>
+                        
+                        <!-- STATIC GANESHA IMAGE -->
+                        <div class="relative w-28 h-28">
+                            <!-- This image tag now looks for 'ganesha.jpg' in the same folder -->
+                            <img id="display-ganesha"
+                                 src="ganesha.jpg" 
+                                 alt="Lord Ganesha" 
+                                 onerror="this.style.display='none'; document.getElementById('fallback-ganesha').style.display='block';"
+                                 class="w-full h-full object-cover rounded-full border-2 border-amber-300/50 drop-shadow-lg relative z-10 bg-[#960018]">
+                            
+                            <!-- Fallback Icon (Hidden unless image fails to load) -->
+                            <div id="fallback-ganesha" class="hidden absolute inset-0 w-full h-full rounded-full bg-[#960018] border-2 border-amber-300/50 flex items-center justify-center">
+                                <svg viewBox="0 0 200 200" fill="currentColor" class="w-20 h-20 text-amber-300">
+                                     <g transform="translate(0, 10)">
+                                        <path d="M70 50 L100 10 L130 50 Z" fill="#d97706" opacity="0.8" />
+                                        <path d="M50 60 Q20 40 30 90 Q40 120 70 100" />
+                                        <path d="M150 60 Q180 40 170 90 Q160 120 130 100" />
+                                        <circle cx="100" cy="80" r="35" />
+                                        <path d="M100 80 Q100 130 130 140 Q145 145 150 130" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" />
+                                     </g>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="text-amber-300 font-bold text-2xl lg:text-3xl font-hindi drop-shadow-sm">लाभ</div>
+                    </div>
+
+                    <div class="text-amber-200/80 tracking-[0.3em] text-xs font-bold uppercase mb-4">The Wedding Celebration</div>
+
+                    <div id="display-groom" class="font-script text-6xl lg:text-7xl text-amber-300 leading-tight drop-shadow-md">Arjun</div>
+                    
+                    <div class="flex items-center justify-center gap-4 text-amber-600 my-2">
+                        <div class="h-[1px] w-12 bg-amber-400/60"></div>
+                        <i data-lucide="heart" class="w-6 h-6 fill-amber-300 text-amber-500"></i>
+                        <div class="h-[1px] w-12 bg-amber-400/60"></div>
+                    </div>
+
+                    <div id="display-bride" class="font-script text-6xl lg:text-7xl text-amber-300 leading-tight drop-shadow-md">Priya</div>
+
+                    <div class="mt-8 font-classic text-lg text-amber-100/90 italic px-4">We cordially invite</div>
+                    
+                    <div id="display-guest" class="font-header text-2xl text-white font-bold py-2 border-b border-amber-300/50 inline-block px-8">Mr. & Mrs. Sharma</div>
+
+                    <div id="display-message" class="font-classic text-lg text-amber-100/90 italic px-8 max-w-lg mx-auto">We solicit your gracious presence to bless the couple as they embark on this beautiful journey of love together.</div>
+                </div>
+
+                <!-- Details Section with updated colors -->
+                <div class="mt-8 w-full max-w-md bg-rose-950/30 backdrop-blur-sm p-6 rounded-lg border border-amber-300/30 relative z-10">
+                    <div class="flex flex-col gap-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-amber-300/20 flex items-center justify-center text-amber-300">
+                                <i data-lucide="calendar"></i>
+                            </div>
+                            <div class="text-left">
+                                <p class="text-xs uppercase tracking-wider text-amber-200/70 font-bold">When</p>
+                                <p id="display-date" class="font-classic text-xl text-amber-50">Monday, December 15, 2025</p>
+                                <p id="display-time" class="text-amber-300 font-medium">7:00 PM</p>
+                            </div>
+                        </div>
+                        <div class="w-full h-[1px] bg-amber-300/20"></div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-amber-300/20 flex items-center justify-center text-amber-300">
+                                <i data-lucide="map-pin"></i>
+                            </div>
+                            <div class="text-left">
+                                <p class="text-xs uppercase tracking-wider text-amber-200/70 font-bold">Where</p>
+                                <p id="display-venue" class="font-classic text-lg text-amber-50 leading-tight">The Grand Palace Hotel, Mumbai</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-12 text-amber-200/60 text-sm font-header">With Love & Gratitude</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        function goToScreen(screenName) {
+            // Hide all screens
+            document.getElementById('screen-welcome').classList.add('hidden');
+            document.getElementById('screen-editor').classList.add('hidden');
+            document.getElementById('screen-preview').classList.add('hidden');
+
+            // Show requested screen
+            const screenId = 'screen-' + screenName;
+            document.getElementById(screenId).classList.remove('hidden');
+
+            // If going to preview, make sure we update the card first
+            if(screenName === 'preview') {
+                updateCard();
+            }
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        function updateCard() {
+            // Get values from inputs
+            const groom = document.getElementById('input-groom').value;
+            const bride = document.getElementById('input-bride').value;
+            const guest = document.getElementById('input-guest').value;
+            const venue = document.getElementById('input-venue').value;
+            const time = document.getElementById('input-time').value;
+            const message = document.getElementById('input-message').value;
+            const dateVal = document.getElementById('input-date').value;
+
+            // Format Date
+            let formattedDate = 'Select Date';
+            if(dateVal) {
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                formattedDate = new Date(dateVal).toLocaleDateString('en-US', options);
+            }
+
+            // Update Preview Elements
+            document.getElementById('display-groom').textContent = groom || 'Groom';
+            document.getElementById('display-bride').textContent = bride || 'Bride';
+            document.getElementById('display-guest').textContent = guest || 'Guest';
+            document.getElementById('display-venue').textContent = venue;
+            document.getElementById('display-time').textContent = time;
+            document.getElementById('display-message').textContent = message;
+            document.getElementById('display-date').textContent = formattedDate;
+        }
+
+        function copyToClipboard() {
+            const groom = document.getElementById('input-groom').value;
+            const bride = document.getElementById('input-bride').value;
+            const guest = document.getElementById('input-guest').value;
+            const venue = document.getElementById('input-venue').value;
+            const time = document.getElementById('input-time').value;
+            const date = document.getElementById('input-date').value;
+            const message = document.getElementById('input-message').value;
+
+            const text = `Wedding Invitation\n\n${groom} & ${bride}\n\nInvite: ${guest}\nDate: ${date} at ${time}\nVenue: ${venue}\n\n${message}`;
+
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            const btn = document.getElementById('copyBtn');
+            const txt = document.getElementById('copyText');
+            
+            // Change style to indicate success
+            const originalClasses = btn.className;
+            btn.className = "flex items-center gap-2 border border-green-800 text-green-800 bg-green-50 px-4 py-2 rounded-md transition";
+            txt.textContent = "Copied!";
+            
+            setTimeout(() => {
+                btn.className = "flex items-center gap-2 border border-rose-900 text-rose-900 bg-white px-4 py-2 rounded-md hover:bg-rose-50 transition";
+                txt.textContent = "Copy Text";
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
