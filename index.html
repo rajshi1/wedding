@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Studio - Dashboard</title>
+    
+    <!-- 1. Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cinzel:wght@400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet">
+    
+    <!-- 3. Icon Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- 4. Custom Styles -->
+    <style>
+        .font-script { font-family: 'Great Vibes', cursive; }
+        .font-classic { font-family: 'Playfair Display', serif; }
+        .font-header { font-family: 'Cinzel', serif; }
+        .font-hindi { font-family: 'Tiro Devanagari Hindi', serif; }
+
+        /* Animation for screens */
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- NEW ANIMATION STYLES --- */
+        
+        /* Floating Label Input Group */
+        .anim-group {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        
+        /* The Input Field */
+        .anim-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d6d3d1; /* stone-300 */
+            border-radius: 0.375rem;
+            background: transparent;
+            outline: none;
+            transition: all 0.3s ease;
+            z-index: 10;
+            position: relative;
+            color: #44403c; /* stone-700 */
+        }
+        
+        /* Focus State for Input */
+        .anim-input:focus {
+            border-color: #e11d48; /* rose-600 */
+            box-shadow: 0 4px 6px -1px rgba(225, 29, 72, 0.1), 0 2px 4px -1px rgba(225, 29, 72, 0.06);
+            transform: translateY(-2px);
+        }
+
+        /* The Label */
+        .anim-label {
+            position: absolute;
+            left: 12px;
+            top: 12px;
+            font-size: 0.875rem; /* text-sm */
+            color: #78716c; /* stone-500 */
+            background-color: white;
+            padding: 0 4px;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            z-index: 20;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Animation Logic */
+        .anim-input:focus + .anim-label,
+        .anim-input:not(:placeholder-shown) + .anim-label,
+        .anim-input:-webkit-autofill + .anim-label,
+        .anim-input[type="date"] + .anim-label,
+        .anim-input[type="time"] + .anim-label,
+        select.anim-input + .anim-label {
+            top: -8px;
+            left: 10px;
+            font-size: 0.7rem;
+            color: #e11d48; /* rose-600 */
+            font-weight: 800;
+        }
+
+        /* Hover Lift Effect for Cards */
+        .hover-lift {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-color: #e11d48;
+        }
+
+        /* Print Settings */
+        @media print {
+            @page { margin: 0; size: auto; }
+            body { background: white; }
+            .profile-menu, #modal-delete, #modal-edit-profile, 
+            #screen-login, #screen-forgot-password, #screen-signup-1, #screen-signup-2, 
+            #screen-signup-3, #screen-welcome, #screen-event-selection, #screen-editor, #screen-design-selection,
+            #floating-toolbar { display: none !important; }
+            #screen-preview { display: block !important; position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; padding: 0; background: white; }
+            #print-area { display: flex !important; position: absolute; top: 0; left: 0; width: 100%; height: 100%; align-items: center; justify-content: center; background: white; padding: 0 !important; margin: 0 !important; }
+            .card-inner { border: none !important; box-shadow: none !important; transform: scale(1) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0 auto; }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-stone-100 text-stone-800 font-serif selection:bg-rose-200 relative">
+
+    <!-- SCREEN: LOGIN -->
+    <div id="screen-login" class="min-h-screen flex flex-col items-center justify-center p-4 fade-in">
+        <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full border-t-4 border-rose-900 relative">
+            <div id="login-loader" class="hidden absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-900"></div>
+            </div>
+
+            <div class="text-center mb-6">
+                <i data-lucide="heart-handshake" class="w-12 h-12 text-rose-900 mx-auto mb-2"></i>
+                <h1 class="text-3xl font-header text-rose-900">Event Studio</h1>
+                <p class="text-stone-500 text-sm mt-1">Secure Login</p>
+            </div>
+            
+            <form id="form-login" class="space-y-1">
+                <div class="anim-group">
+                    <input type="email" id="login-email" required class="anim-input" placeholder=" ">
+                    <label class="anim-label">User ID (Email)</label>
+                </div>
+                <div class="anim-group">
+                    <input type="password" id="login-password" required class="anim-input" placeholder=" ">
+                    <label class="anim-label">Password</label>
+                </div>
+                
+                <!-- LOGIN CAPTCHA -->
+                <div class="bg-stone-50 p-3 rounded-md border border-stone-200 mb-4">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-2">Security Check</label>
+                    <div class="flex gap-3 mb-2">
+                        <canvas id="captcha-canvas" width="140" height="40" class="bg-white border border-stone-300 rounded shadow-sm select-none pointer-events-none"></canvas>
+                        <button type="button" onclick="drawCaptcha()" class="p-2 text-stone-500 hover:text-rose-900 hover:bg-white rounded border border-transparent hover:border-stone-300 transition" title="Refresh Captcha">
+                            <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <div class="anim-group mb-0">
+                        <input type="text" id="captcha-input" required class="anim-input" placeholder=" ">
+                        <label class="anim-label">Enter Code</label>
+                    </div>
+                </div>
+
+                <div class="flex justify-end mb-4">
+                    <button type="button" onclick="goToScreen('forgot-password')" class="text-xs text-rose-700 hover:underline">Forgot Password?</button>
+                </div>
+
+                <p id="login-error" class="text-red-600 text-xs hidden text-center font-bold mb-2"></p>
+
+                <button type="submit" class="w-full bg-rose-900 text-white py-3 rounded-md hover:bg-rose-800 transition font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5">Login</button>
+            </form>
+
+            <div class="mt-6 text-center pt-4 border-t border-stone-100">
+                <p class="text-stone-500 text-sm">New here?</p>
+                <button onclick="goToScreen('signup-1')" class="text-rose-700 font-bold hover:underline text-sm">Create an Account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN: FORGOT PASSWORD -->
+    <div id="screen-forgot-password" class="hidden min-h-screen flex flex-col items-center justify-center p-4 fade-in">
+        <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full border-t-4 border-rose-900 relative">
+             <div id="reset-loader" class="hidden absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-900"></div>
+            </div>
+            <div class="text-center mb-6">
+                <h2 class="text-xl font-header text-stone-800 mb-2">Reset Password</h2>
+                <p class="text-stone-500 text-xs">Enter your registered email address.</p>
+            </div>
+            <form id="form-reset" class="space-y-4">
+                <div class="anim-group">
+                    <input type="email" id="reset-email" required class="anim-input" placeholder=" ">
+                    <label class="anim-label">Email Address</label>
+                </div>
+                <p id="reset-message" class="text-green-600 text-xs hidden text-center font-bold"></p>
+                <p id="reset-error" class="text-red-600 text-xs hidden text-center font-bold"></p>
+                <button type="submit" class="w-full bg-rose-900 text-white py-3 rounded-md hover:bg-rose-800 transition shadow-md">Send Reset Link</button>
+                <button type="button" onclick="goToScreen('login')" class="w-full bg-stone-100 text-stone-600 py-3 rounded-md hover:bg-stone-200 transition">Back to Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCREEN: SIGNUP STEP 1 -->
+    <div id="screen-signup-1" class="hidden min-h-screen flex flex-col items-center justify-center p-4 fade-in">
+        <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full border-t-4 border-rose-900">
+            <h2 class="text-xl font-header text-stone-800 mb-1">Create Account</h2>
+            <p class="text-stone-500 text-xs mb-6">Step 1 of 3: Basic Information</p>
+            <form id="form-signup-1" class="space-y-1">
+                <div class="anim-group">
+                    <input type="text" id="signup-name" required class="anim-input" placeholder=" ">
+                    <label class="anim-label">Full Name</label>
+                </div>
+                <div class="anim-group">
+                    <input type="email" id="signup-email" required class="anim-input" placeholder=" ">
+                    <label class="anim-label">User ID (Email)</label>
+                </div>
+                <div class="anim-group">
+                    <input type="tel" id="signup-mobile" class="anim-input" placeholder=" ">
+                    <label class="anim-label">Mobile Number</label>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="goToScreen('login')" class="flex-1 bg-stone-100 text-stone-600 py-3 rounded-md hover:bg-stone-200 transition">Cancel</button>
+                    <button type="submit" class="flex-1 bg-rose-900 text-white py-3 rounded-md hover:bg-rose-800 transition shadow-md">Next</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCREEN: SIGNUP STEP 2 -->
+    <div id="screen-signup-2" class="hidden min-h-screen flex flex-col items-center justify-center p-4 fade-in">
+        <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full border-t-4 border-rose-900">
+            <h2 class="text-xl font-header text-stone-800 mb-1">Your Address</h2>
+            <p class="text-stone-500 text-xs mb-6">Step 2 of 3: Location Details</p>
+            <form id="form-signup-2" class="space-y-1">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="anim-group">
+                        <input type="text" id="signup-village" required class="anim-input" placeholder=" ">
+                        <label class="anim-label">Village/Town</label>
+                    </div>
+                    <div class="anim-group">
+                        <input type="text" id="signup-po" required class="anim-input" placeholder=" ">
+                        <label class="anim-label">Post Office</label>
+                    </div>
+                </div>
+                <div class="anim-group">
+                    <select id="signup-state" onchange="populateDistricts('signup')" required class="anim-input">
+                        <option value=""></option>
+                    </select>
+                    <label class="anim-label">State (India)</label>
+                </div>
+                <div class="anim-group">
+                    <select id="signup-district" required class="anim-input bg-white disabled:bg-stone-100" disabled>
+                        <option value=""></option>
+                    </select>
+                    <label class="anim-label">District</label>
+                </div>
+                <div class="anim-group">
+                    <input type="text" id="signup-pincode" pattern="[0-9]{6}" required class="anim-input" placeholder=" ">
+                    <label class="anim-label">Pincode</label>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="goToScreen('signup-1')" class="flex-1 bg-stone-100 text-stone-600 py-3 rounded-md hover:bg-stone-200 transition">Back</button>
+                    <button type="submit" class="flex-1 bg-rose-900 text-white py-3 rounded-md hover:bg-rose-800 transition shadow-md">Next</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCREEN: SIGNUP STEP 3 -->
+    <div id="screen-signup-3" class="hidden min-h-screen flex flex-col items-center justify-center p-4 fade-in">
+        <div class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full border-t-4 border-rose-900 relative">
+             <div id="signup-loader" class="hidden absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-900"></div>
+            </div>
+            <h2 class="text-xl font-header text-stone-800 mb-1">Security</h2>
+            <p class="text-stone-500 text-xs mb-6">Step 3 of 3: Create Password</p>
+            <div class="bg-blue-50 p-3 rounded text-xs text-blue-800 mb-4 border border-blue-100">
+                <strong>Password Rules:</strong><br>8-25 chars, 1 Upper, 1 Lower, 1 Special (@#$*&)
+            </div>
+            <form id="form-signup-3" class="space-y-1">
+                <div class="anim-group">
+                    <input type="password" id="signup-password" required class="anim-input" placeholder=" ">
+                    <label class="anim-label">Password</label>
+                </div>
+                <div class="anim-group">
+                    <input type="password" id="signup-confirm-password" required class="anim-input" placeholder=" ">
+                    <label class="anim-label">Confirm Password</label>
+                </div>
+
+                <!-- SIGNUP CAPTCHA SECTION -->
+                <div class="bg-stone-50 p-3 rounded-md border border-stone-200 mb-4">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-2">Security Check</label>
+                    <div class="flex gap-3 mb-2">
+                        <canvas id="signup-captcha-canvas" width="140" height="40" class="bg-white border border-stone-300 rounded shadow-sm select-none pointer-events-none"></canvas>
+                        <button type="button" onclick="drawSignupCaptcha()" class="p-2 text-stone-500 hover:text-rose-900 hover:bg-white rounded border border-transparent hover:border-stone-300 transition" title="Refresh Captcha">
+                            <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                    <div class="anim-group mb-0">
+                        <input type="text" id="signup-captcha-input" required class="anim-input" placeholder=" ">
+                        <label class="anim-label">Enter Code</label>
+                    </div>
+                </div>
+
+                <p id="signup-error" class="text-red-600 text-xs hidden text-center font-bold mb-2"></p>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="goToScreen('signup-2')" class="flex-1 bg-stone-100 text-stone-600 py-3 rounded-md hover:bg-stone-200 transition">Back</button>
+                    <button type="submit" class="flex-1 bg-rose-900 text-white py-3 rounded-md hover:bg-rose-800 transition shadow-md">Create Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- APP SCREENS (Rest of the application remains the same but context included for completeness) -->
+    <div id="profile-component" class="hidden absolute top-4 right-4 z-40 profile-menu">
+        <div class="relative">
+            <button onclick="toggleProfileMenu()" class="w-10 h-10 rounded-full bg-rose-100 border-2 border-rose-300 flex items-center justify-center overflow-hidden hover:ring-4 ring-rose-200 transition transform hover:scale-105">
+                <img id="header-profile-img" src="" alt="Profile" class="w-full h-full object-cover hidden">
+                <i id="header-profile-icon" data-lucide="user" class="w-5 h-5 text-rose-700"></i>
+            </button>
+            <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-stone-200 overflow-hidden transform origin-top-right transition-all">
+                <div class="bg-rose-50 px-4 py-3 border-b border-rose-100"><p class="text-xs font-bold uppercase text-rose-900">Signed in as</p><p id="menu-user-name" class="text-sm font-medium text-stone-800 truncate">Guest</p></div>
+                <div class="py-1"><button onclick="openEditProfile()" class="w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-50 flex items-center gap-2"><i data-lucide="settings" class="w-4 h-4"></i> Edit Profile</button><button onclick="triggerPasswordReset()" class="w-full text-left px-4 py-2 text-sm text-stone-700 hover:bg-stone-50 flex items-center gap-2"><i data-lucide="key" class="w-4 h-4"></i> Reset Password</button></div>
+                <div class="border-t border-stone-100 py-1"><button onclick="confirmDeleteAccount()" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"><i data-lucide="trash-2" class="w-4 h-4"></i> Delete Account</button><button onclick="logout()" class="w-full text-left px-4 py-2 text-sm text-stone-600 hover:bg-stone-50 flex items-center gap-2"><i data-lucide="log-out" class="w-4 h-4"></i> Logout</button></div>
+            </div>
+        </div>
+    </div>
+    <!-- ... Welcome, Event Selection, Editor, Design Selection, Preview, Modals (same as previous) ... -->
+    <div id="screen-welcome" class="hidden fixed inset-0 z-10 flex items-center justify-center bg-stone-900/40 backdrop-blur-sm p-4 fade-in">
+        <div class="bg-white p-8 md:p-12 rounded-lg shadow-2xl max-w-lg w-full text-center border-t-4 border-rose-900 relative overflow-hidden">
+            <i data-lucide="sparkles" class="absolute -top-6 -right-6 w-32 h-32 text-rose-50 opacity-50 animate-pulse"></i>
+            <h1 class="text-4xl font-header text-rose-900 mb-4">Event Studio</h1>
+            <p class="text-stone-600 font-classic text-lg mb-8">Design perfect invitations for every occasion.</p>
+            <button onclick="goToScreen('event-selection')" class="group relative inline-flex items-center justify-center gap-2 bg-rose-900 text-white px-8 py-3 rounded-full text-lg hover:bg-rose-800 transition shadow-lg w-full md:w-auto transform hover:scale-105"><span>Start Designing</span><i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i></button>
+        </div>
+    </div>
+    <!-- ... [Event Selection Screen] ... -->
+    <div id="screen-event-selection" class="hidden min-h-screen flex flex-col items-center justify-center p-4 fade-in pt-20">
+        <div class="w-full max-w-5xl"><div class="text-center mb-12"><h2 class="text-3xl font-header text-stone-800 mb-2">Select Occasion</h2><div class="h-1 w-16 bg-rose-900 mx-auto mt-4"></div></div><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6"><button onclick="selectEvent('wedding')" class="hover-lift flex flex-col items-center justify-center p-6 bg-white rounded-xl shadow-md border-2 border-transparent hover:border-rose-500 group h-48"><div class="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-rose-600 transition"><i data-lucide="heart-handshake" class="w-8 h-8 text-rose-600 group-hover:text-white transition"></i></div><span class="font-bold text-stone-700">Wedding</span></button><button onclick="selectEvent('engagement')" class="hover-lift flex flex-col items-center justify-center p-6 bg-white rounded-xl shadow-md border-2 border-transparent hover:border-blue-500 group h-48"><div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-600 transition"><i data-lucide="gem" class="w-8 h-8 text-blue-600 group-hover:text-white transition"></i></div><span class="font-bold text-stone-700">Engagement</span></button><button onclick="selectEvent('anniversary')" class="hover-lift flex flex-col items-center justify-center p-6 bg-white rounded-xl shadow-md border-2 border-transparent hover:border-amber-500 group h-48"><div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-amber-600 transition"><i data-lucide="glass-water" class="w-8 h-8 text-amber-600 group-hover:text-white transition"></i></div><span class="font-bold text-stone-700">Anniversary</span></button><button onclick="selectEvent('birthday')" class="hover-lift flex flex-col items-center justify-center p-6 bg-white rounded-xl shadow-md border-2 border-transparent hover:border-purple-500 group h-48"><div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-purple-600 transition"><i data-lucide="cake" class="w-8 h-8 text-purple-600 group-hover:text-white transition"></i></div><span class="font-bold text-stone-700">Birthday</span></button><button onclick="selectEvent('opening')" class="hover-lift flex flex-col items-center justify-center p-6 bg-white rounded-xl shadow-md border-2 border-transparent hover:border-emerald-500 group h-48"><div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-emerald-600 transition"><i data-lucide="store" class="w-8 h-8 text-emerald-600 group-hover:text-white transition"></i></div><span class="font-bold text-stone-700">Grand Opening</span></button></div></div>
+    </div>
+    <!-- ... [Editor Screen] ... -->
+    <div id="screen-editor" class="hidden min-h-screen flex flex-col items-center justify-center p-4 fade-in pb-20">
+        <div class="w-full max-w-3xl bg-white p-6 md:p-10 rounded-xl shadow-xl my-8 relative"><div class="text-center mb-8"><button onclick="goToScreen('event-selection')" class="absolute left-6 top-6 text-xs text-stone-400 hover:text-rose-900 flex items-center gap-1"><i data-lucide="arrow-left" class="w-3 h-3"></i> Back</button><h2 id="editor-title" class="text-2xl font-header text-stone-800">Enter Details</h2><div class="h-1 w-16 bg-rose-900 mx-auto mt-2"></div></div><form id="cardForm" class="space-y-1"><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4" id="input-group-names"><div class="anim-group"><input type="text" id="input-name1" class="anim-input" placeholder=" "><label id="lbl-name1" class="anim-label">Groom's Name</label></div><div class="anim-group" id="container-name2"><input type="text" id="input-name2" class="anim-input" placeholder=" "><label id="lbl-name2" class="anim-label">Bride's Name</label></div></div><div id="container-anniversary-year" class="anim-group hidden"><input type="text" id="input-anniversary-year" class="anim-input" placeholder=" "><label class="anim-label">Years of Celebration</label></div><div id="container-photo-upload" class="hidden mb-6 border-2 border-dashed border-stone-300 bg-stone-50 rounded-md p-4 hover:bg-rose-50 hover:border-rose-300 transition group"><label class="block text-xs font-bold uppercase tracking-wider text-stone-500 mb-2 group-hover:text-rose-600 transition" id="lbl-photo-upload">Upload Photo</label><label class="cursor-pointer flex items-center gap-3"><div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-stone-200"><i data-lucide="upload" class="w-5 h-5 text-stone-400"></i></div><span class="text-sm text-stone-500" id="event-file-name">Choose Image...</span><input type="file" id="input-event-photo" accept="image/*" onchange="handleEventPhotoUpload(this)" class="hidden"></label><p id="photo-error" class="text-xs text-red-500 mt-2 hidden"></p></div><div class="anim-group"><input type="text" id="input-guest" class="anim-input" placeholder=" "><label id="lbl-guest" class="anim-label">Guest Name(s)</label></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4"><div class="anim-group"><input type="date" id="input-date" class="anim-input" placeholder=" "><label class="anim-label">Date</label></div><div class="anim-group"><input type="text" id="input-time" class="anim-input" placeholder=" "><label class="anim-label">Time</label></div></div><div class="anim-group"><input type="text" id="input-venue" class="anim-input" placeholder=" "><label class="anim-label">Venue</label></div><div class="anim-group"><textarea id="input-message" rows="3" class="anim-input resize-none" placeholder=" "></textarea><label class="anim-label">Message</label></div></form><div class="mt-8 flex justify-end"><button onclick="validateAndProceedToDesign()" class="flex items-center gap-2 bg-stone-800 text-white px-8 py-3 rounded-md hover:bg-stone-700 transition shadow-lg transform hover:scale-105"><span>Choose Design</span><i data-lucide="arrow-right" class="w-4 h-4"></i></button></div></div>
+    </div>
+    <!-- ... [Design Selection] ... -->
+    <div id="screen-design-selection" class="hidden min-h-screen flex flex-col items-center justify-start p-4 fade-in pt-20 pb-20"><div class="w-full max-w-6xl"><div class="text-center mb-10"><h2 class="text-3xl font-header text-stone-800 mb-2">Select a Design</h2><p class="text-stone-500">Choose from 10 exclusive themes</p><div class="h-1 w-16 bg-rose-900 mx-auto mt-4"></div></div><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-10"><div id="design-grid" class="contents"></div></div><div class="text-center"><button onclick="goToScreen('editor')" class="px-6 py-2 text-stone-500 hover:text-stone-800">Back to Details</button></div></div></div>
+    <!-- ... [Preview] ... -->
+    <div id="screen-preview" class="hidden min-h-screen flex flex-col items-center justify-start bg-stone-100 fade-in pt-10 pb-32"><div id="print-area" class="w-full flex justify-center p-4"><div id="final-card" class="card-inner w-full max-w-[600px] bg-white shadow-2xl relative overflow-hidden flex flex-col items-center text-center py-12 px-8 lg:px-12 transition-all duration-300"><div id="card-border" class="absolute inset-0 pointer-events-none z-0 p-3"></div><div class="z-10 relative space-y-3 w-full flex flex-col items-center"><div class="flex items-center justify-center gap-6 lg:gap-10 mb-2 w-full"><div id="txt-shubh" class="font-bold text-2xl lg:text-3xl font-hindi drop-shadow-sm text-current"></div><div class="relative w-24 h-24 flex items-center justify-center" id="central-icon-container"></div><div id="txt-labh" class="font-bold text-2xl lg:text-3xl font-hindi drop-shadow-sm text-current"></div></div><div id="txt-header" class="tracking-[0.3em] text-xs font-bold uppercase opacity-80 text-current">The Wedding Celebration</div><div id="uploaded-photo-display" class="hidden my-2"></div><div class="w-full"><div id="display-name1" class="font-script text-6xl lg:text-7xl leading-tight drop-shadow-md text-current"></div><div id="separator-container" class="flex items-center justify-center gap-3 my-2 text-current"></div><div id="display-name2" class="font-script text-6xl lg:text-7xl leading-tight drop-shadow-md text-current"></div></div><div class="mt-4 font-classic text-lg italic px-4 opacity-90 text-current" id="invite-prefix">We cordially invite</div><div id="display-guest" class="font-header text-2xl font-bold py-2 border-b border-current inline-block px-8 text-current"></div><div id="display-message" class="font-classic text-lg italic px-8 max-w-lg mx-auto opacity-90 text-current"></div></div><div id="details-box" class="mt-6 w-full max-w-md backdrop-blur-sm p-6 rounded-lg border border-current relative z-10 bg-current/5"><div class="flex flex-col gap-6 text-current"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full flex items-center justify-center bg-current/10"><i data-lucide="calendar"></i></div><div class="text-left"><p class="text-xs uppercase tracking-wider font-bold opacity-70">When</p><p id="display-date" class="font-classic text-xl">Date</p><p id="display-time" class="font-medium">Time</p></div></div><div class="w-full h-[1px] bg-current opacity-30"></div><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full flex items-center justify-center bg-current/10"><i data-lucide="map-pin"></i></div><div class="text-left"><p class="text-xs uppercase tracking-wider font-bold opacity-70">Where</p><p id="display-venue" class="font-classic text-lg leading-tight">Venue Address</p></div></div></div></div><div class="mt-8 text-sm font-header opacity-60 text-current">With Love & Gratitude</div></div></div><div id="floating-toolbar" class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] p-4 z-50 border-t border-stone-200"><div class="max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-4"><div class="flex gap-2"><button onclick="goToScreen('editor')" class="flex items-center gap-2 px-4 py-2 bg-white border border-stone-300 text-stone-700 rounded-md hover:bg-stone-50 transition shadow-sm font-medium"><i data-lucide="edit-3" class="w-4 h-4"></i> Edit Text</button><button onclick="goToScreen('design-selection')" class="flex items-center gap-2 px-4 py-2 bg-white border border-stone-300 text-stone-700 rounded-md hover:bg-stone-50 transition shadow-sm font-medium"><i data-lucide="palette" class="w-4 h-4"></i> Designs</button></div><button onclick="window.print()" class="flex items-center gap-2 px-6 py-2 bg-rose-900 text-white rounded-md hover:bg-rose-800 transition shadow-md font-bold transform hover:scale-105"><i data-lucide="printer" class="w-4 h-4"></i> Print Card</button></div></div></div>
+    <!-- ... [Modals: Delete, Edit] ... -->
+    <div id="modal-delete" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"><div class="bg-white p-6 rounded-lg shadow-2xl max-w-sm w-full border-t-4 border-red-600"><h3 class="text-lg font-bold text-red-700 mb-2">Delete Account?</h3><p class="text-sm text-stone-600 mb-6">Are you sure you want to delete your account permanently?</p><div class="flex gap-3 justify-end"><button onclick="document.getElementById('modal-delete').classList.add('hidden')" class="px-4 py-2 text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-md">Cancel</button><button onclick="handleDeleteAccount()" class="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-md shadow">Yes, Delete</button></div></div></div>
+    <div id="modal-edit-profile" class="hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 fade-in"><div class="bg-white p-6 rounded-lg shadow-2xl max-w-lg w-full relative overflow-y-auto max-h-[90vh]"><button onclick="document.getElementById('modal-edit-profile').classList.add('hidden')" class="absolute top-4 right-4 text-stone-400 hover:text-stone-800"><i data-lucide="x" class="w-5 h-5"></i></button><h3 class="text-xl font-header text-stone-800 mb-4 border-b border-stone-100 pb-2">Edit Profile</h3><div class="flex flex-col items-center mb-6"><div class="w-20 h-20 rounded-full bg-stone-100 mb-3 relative overflow-hidden border-2 border-stone-200"><img id="edit-profile-img-preview" src="" class="w-full h-full object-cover hidden"><i id="edit-profile-icon" data-lucide="user" class="w-8 h-8 text-stone-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></i></div><label class="cursor-pointer text-xs text-rose-700 font-bold hover:underline">Change Photo<input type="file" accept="image/*" class="hidden" onchange="handleImageSelect(this)"></label></div><form onsubmit="handleSaveProfile(event)" class="space-y-1"><div class="grid grid-cols-2 gap-4"><div class="anim-group"><input type="text" id="edit-name" required class="anim-input" placeholder=" "><label class="anim-label">Full Name</label></div><div class="anim-group"><input type="tel" id="edit-mobile" class="anim-input" placeholder=" "><label class="anim-label">Mobile</label></div></div><div class="anim-group"><input type="email" id="edit-email" readonly class="anim-input bg-stone-100 cursor-not-allowed" placeholder=" "><label class="anim-label">Email (Read Only)</label></div><h4 class="text-xs font-bold text-stone-400 uppercase tracking-wider mt-4 border-b border-stone-100 pb-1">Address</h4><div class="grid grid-cols-2 gap-4"><div class="anim-group"><input type="text" id="edit-village" required class="anim-input" placeholder=" "><label class="anim-label">Village/Town</label></div><div class="anim-group"><input type="text" id="edit-po" required class="anim-input" placeholder=" "><label class="anim-label">Post Office</label></div></div><div class="grid grid-cols-2 gap-4"><div class="anim-group"><select id="edit-state" onchange="populateDistricts('edit')" required class="anim-input"><option value=""></option></select><label class="anim-label">State</label></div><div class="anim-group"><select id="edit-district" required class="anim-input bg-white disabled:bg-stone-100" disabled><option value=""></option></select><label class="anim-label">District</label></div></div><div class="anim-group"><input type="text" id="edit-pincode" required class="anim-input" placeholder=" "><label class="anim-label">Pincode</label></div><div class="pt-4 flex justify-end gap-2"><button type="button" onclick="document.getElementById('modal-edit-profile').classList.add('hidden')" class="px-4 py-2 text-stone-600 bg-stone-100 rounded hover:bg-stone-200">Cancel</button><button type="submit" class="px-4 py-2 text-white bg-rose-900 rounded hover:bg-rose-800 shadow-md">Save Changes</button></div></form></div></div>
+
+    <!-- ================= JAVASCRIPT & FIREBASE ================= -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged, updateProfile, deleteUser, updateEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAKyBcZHeua5hn3GBlhR8bEIgRSJWDBu3o",
+            authDomain: "wedding-24cd3.firebaseapp.com",
+            projectId: "wedding-24cd3",
+            storageBucket: "wedding-24cd3.firebasestorage.app",
+            messagingSenderId: "576402790898",
+            appId: "1:576402790898:web:080ef12bf3d5081bb0736b",
+            measurementId: "G-SM8SC7WN3C"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // --- GLOBAL EXPORTS ---
+        window.handleLogin = handleLogin;
+        window.handleSignupStep1 = handleSignupStep1;
+        window.handleSignupStep2 = handleSignupStep2;
+        window.handleSignupStep3 = handleSignupStep3;
+        window.handleReset = handleReset;
+        window.logout = logout;
+        window.goToScreen = goToScreen;
+        window.populateDistricts = populateDistricts;
+        window.confirmDeleteAccount = confirmDeleteAccount;
+        window.handleDeleteAccount = handleDeleteAccount;
+        window.toggleProfileMenu = toggleProfileMenu;
+        window.openEditProfile = openEditProfile;
+        window.handleImageSelect = handleImageSelect;
+        window.handleSaveProfile = handleSaveProfile;
+        window.triggerPasswordReset = triggerPasswordReset;
+        window.drawCaptcha = drawCaptcha;
+        window.drawSignupCaptcha = drawSignupCaptcha; // NEW
+        window.selectDesign = selectDesign;
+        window.selectEvent = selectEvent;
+        window.handleEventPhotoUpload = handleEventPhotoUpload; 
+        window.validateAndProceedToDesign = validateAndProceedToDesign; 
+
+        let tempSignupData = {};
+        let currentUserMeta = {}; 
+        let currentProfileImage = "";
+        let captchaCode = '';
+        let signupCaptchaCode = ''; // NEW
+        let currentDesignIndex = 0;
+        let currentEventType = 'wedding'; // Default
+        let currentEventPhoto = null; // Store base64 of event specific photo
+
+        // --- EVENT TYPE LOGIC ---
+        function selectEvent(type) {
+            currentEventType = type;
+            currentEventPhoto = null;
+            document.getElementById('input-event-photo').value = '';
+            document.getElementById('event-file-name').textContent = "Choose Image...";
+            updateEditorUI();
+            goToScreen('editor');
+        }
+
+        function updateEditorUI() {
+            const lbl1 = document.getElementById('lbl-name1');
+            const input1 = document.getElementById('input-name1');
+            const div2 = document.getElementById('container-name2');
+            const lbl2 = document.getElementById('lbl-name2');
+            const input2 = document.getElementById('input-name2');
+            const lblGuest = document.getElementById('lbl-guest');
+            const msg = document.getElementById('input-message');
+            const photoContainer = document.getElementById('container-photo-upload'); 
+            const annivYearContainer = document.getElementById('container-anniversary-year'); 
+
+            // Reset
+            div2.classList.remove('hidden');
+            photoContainer.classList.add('hidden'); 
+            annivYearContainer.classList.add('hidden');
+            input1.value = ''; input2.value = '';
+            lblGuest.textContent = "Guest Name(s)";
+
+            switch(currentEventType) {
+                case 'wedding':
+                    lbl1.textContent = "Groom's Name"; 
+                    lbl2.textContent = "Bride's Name"; 
+                    msg.value = "We solicit your gracious presence to bless the couple as they embark on this beautiful journey of love together.";
+                    break;
+                case 'engagement':
+                    lbl1.textContent = "Partner 1 Name"; 
+                    lbl2.textContent = "Partner 2 Name"; 
+                    msg.value = "Join us as we celebrate our engagement and the beginning of our forever.";
+                    break;
+                case 'anniversary':
+                    lbl1.textContent = "Partner 1 Name"; 
+                    lbl2.textContent = "Partner 2 Name"; 
+                    msg.value = "Celebrating years of love, laughter, and happiness. Please join us for our Anniversary.";
+                    photoContainer.classList.remove('hidden'); 
+                    annivYearContainer.classList.remove('hidden'); 
+                    document.getElementById('lbl-photo-upload').textContent = "Upload Couple Photo (Max 10MB)*";
+                    break;
+                case 'birthday':
+                    lbl1.textContent = "Birthday Person"; 
+                    lbl2.textContent = "Age (Optional)"; 
+                    msg.value = "You are invited to join the birthday celebrations! Let's make it memorable.";
+                    photoContainer.classList.remove('hidden'); 
+                    document.getElementById('lbl-photo-upload').textContent = "Upload Birthday Person Photo (Max 10MB)*";
+                    break;
+                case 'opening':
+                    lbl1.textContent = "Shop/Hotel Name"; 
+                    lbl2.textContent = "Owner/Tagline"; 
+                    lblGuest.textContent = "Invitee Name"; 
+                    msg.value = "to grace the auspicious occasion of the Grand Opening Ceremony of our new venture with your presence.";
+                    photoContainer.classList.remove('hidden'); 
+                    document.getElementById('lbl-photo-upload').textContent = "Upload Shop/Logo Photo (Max 10MB)*";
+                    break;
+            }
+        }
+
+        function handleEventPhotoUpload(input) {
+            const errorMsg = document.getElementById('photo-error');
+            errorMsg.classList.add('hidden');
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                if(file.size > 10 * 1024 * 1024) {
+                    errorMsg.textContent = "File is too large! Maximum size is 10MB.";
+                    errorMsg.classList.remove('hidden');
+                    input.value = ''; currentEventPhoto = null;
+                    document.getElementById('event-file-name').textContent = "Choose Image...";
+                    return;
+                }
+                document.getElementById('event-file-name').textContent = file.name;
+                const reader = new FileReader();
+                reader.onload = function(e) { currentEventPhoto = e.target.result; };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function validateAndProceedToDesign() {
+            if(['anniversary', 'birthday', 'opening'].includes(currentEventType) && !currentEventPhoto) {
+                alert("Please upload a photo for this event type. It is mandatory.");
+                return;
+            }
+            goToScreen('design-selection');
+        }
+
+        // --- DESIGN & PREVIEW LOGIC (Same as before) ---
+        const designs = [
+            { name: "Classic Pink", bg: "bg-white", text: "text-rose-600", border: "" },
+            { name: "Royal Red", bg: "bg-[#960018]", text: "text-amber-100", border: "" },
+            { name: "Midnight Blue", bg: "bg-blue-950", text: "text-blue-100", border: "" },
+            { name: "Pure Gold", bg: "bg-[#FFFAF0]", text: "text-stone-800", border: "" },
+            { name: "Floral Pink", bg: "bg-rose-100", text: "text-rose-900", border: "" },
+            { name: "Emerald", bg: "bg-emerald-900", text: "text-emerald-50", border: "" },
+            { name: "Deep Purple", bg: "bg-purple-950", text: "text-purple-100", border: "" },
+            { name: "Saffron", bg: "bg-orange-700", text: "text-orange-50", border: "" },
+            { name: "Slate Grey", bg: "bg-slate-800", text: "text-slate-100", border: "" },
+            { name: "Teal Dreams", bg: "bg-teal-900", text: "text-teal-50", border: "" }
+        ];
+
+        function renderDesignGrid() {
+            const grid = document.getElementById('design-grid');
+            grid.innerHTML = '';
+            designs.forEach((design, index) => {
+                const div = document.createElement('div');
+                div.className = "cursor-pointer group hover-lift";
+                div.onclick = () => selectDesign(index);
+                div.innerHTML = `
+                    <div class="${design.bg} ${design.text} h-40 rounded-lg shadow-md border-2 border-transparent group-hover:border-rose-500 transition-colors flex flex-col items-center justify-center relative overflow-hidden">
+                        <div class="absolute top-2 left-2 w-[calc(100%-16px)] h-[calc(100%-16px)] text-current opacity-50 p-1">
+                            <svg width="100%" height="100%" viewBox="0 0 100 150" preserveAspectRatio="none" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="2" width="96" height="146"/><path d="M5 15 Q 5 5 15 5 L 25 5" stroke-width="3"/><path d="M95 15 Q 95 5 85 5 L 75 5" stroke-width="3"/><path d="M5 135 Q 5 145 15 145 L 25 145" stroke-width="3"/><path d="M95 135 Q 95 145 85 145 L 75 145" stroke-width="3"/>
+                            </svg>
+                        </div>
+                        <span class="font-script text-2xl z-10">Name</span>
+                    </div>
+                    <p class="text-center text-sm font-bold text-stone-600 mt-2">${design.name}</p>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function selectDesign(index) { currentDesignIndex = index; updateCard(); goToScreen('preview'); }
+
+        function updateCard() {
+            const design = designs[currentDesignIndex];
+            const card = document.getElementById('final-card');
+            const borderContainer = document.getElementById('card-border');
+            
+            card.className = `card-inner w-full max-w-[600px] shadow-2xl relative overflow-hidden flex flex-col items-center text-center py-12 px-8 lg:px-12 transition-all duration-300 ${design.bg} ${design.text}`;
+            borderContainer.innerHTML = `
+                <svg width="100%" height="100%" class="text-current opacity-80" viewBox="0 0 400 600" preserveAspectRatio="none">
+                    <rect x="2" y="2" width="396" height="596" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="6" y="6" width="388" height="588" fill="none" stroke="currentColor" stroke-width="0.5"/><path d="M10 50 Q 10 10 50 10 L 100 10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 50 L 10 100" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="10" r="3" fill="currentColor"/><path d="M390 50 Q 390 10 350 10 L 300 10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M390 50 L 390 100" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="390" cy="10" r="3" fill="currentColor"/><path d="M10 550 Q 10 590 50 590 L 100 590" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 550 L 10 500" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="590" r="3" fill="currentColor"/><path d="M390 550 Q 390 590 350 590 L 300 590" fill="none" stroke="currentColor" stroke-width="2"/><path d="M390 550 L 390 500" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="390" cy="590" r="3" fill="currentColor"/>
+                </svg>
+            `;
+            
+            const name1 = document.getElementById('input-name1').value;
+            const name2 = document.getElementById('input-name2').value;
+            const guest = document.getElementById('input-guest').value;
+            const venue = document.getElementById('input-venue').value;
+            const time = document.getElementById('input-time').value;
+            const message = document.getElementById('input-message').value;
+            const dateVal = document.getElementById('input-date').value;
+            const annivYear = document.getElementById('input-anniversary-year').value; 
+            
+            let formattedDate = 'Select Date';
+            if(dateVal) { const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }; formattedDate = new Date(dateVal).toLocaleDateString('en-US', options); }
+            
+            const headerTxt = document.getElementById('txt-header');
+            const shubh = document.getElementById('txt-shubh');
+            const labh = document.getElementById('txt-labh');
+            const centralIcon = document.getElementById('central-icon-container');
+            const dName1 = document.getElementById('display-name1');
+            const dName2 = document.getElementById('display-name2');
+            const separator = document.getElementById('separator-container');
+            const invitePrefix = document.getElementById('invite-prefix');
+            const photoDisplay = document.getElementById('uploaded-photo-display');
+
+            dName1.textContent = name1 || 'Name';
+            dName2.textContent = name2 || 'Name';
+            dName2.classList.remove('hidden');
+            separator.classList.remove('hidden');
+            invitePrefix.textContent = "We cordially invite";
+            shubh.textContent = "शुभ"; labh.textContent = "लाभ";
+            photoDisplay.classList.add('hidden');
+
+            const setCentralIcon = (iconName) => {
+                centralIcon.innerHTML = `<div class="w-full h-full rounded-full border-2 border-current flex items-center justify-center bg-current/10"><i data-lucide="${iconName}" class="w-12 h-12"></i></div>`;
+            }
+
+            if(currentEventType === 'wedding') {
+                headerTxt.textContent = "The Wedding Celebration";
+                centralIcon.innerHTML = `<img src="ganesha.jpg" class="w-full h-full object-cover rounded-full border-2 border-current drop-shadow-lg" onerror="this.style.display='none'"><div class="absolute inset-0 flex items-center justify-center -z-10"><i data-lucide="image-off" class="w-8 h-8"></i></div>`;
+                separator.innerHTML = `<div class="h-[1px] w-8 bg-current opacity-50"></div><i data-lucide="heart" class="w-4 h-4 fill-current"></i><span class="font-script text-2xl lg:text-3xl font-bold">Weds</span><i data-lucide="heart" class="w-4 h-4 fill-current"></i><div class="h-[1px] w-8 bg-current opacity-50"></div>`;
+            } else if (currentEventType === 'engagement') {
+                headerTxt.textContent = "Engagement Ceremony";
+                setCentralIcon('gem');
+                separator.innerHTML = `<span class="font-script text-2xl lg:text-3xl font-bold">&</span>`;
+            } else if (currentEventType === 'anniversary') {
+                headerTxt.textContent = annivYear ? `${annivYear} Anniversary` : "Anniversary Celebration"; 
+                setCentralIcon('glass-water');
+                separator.innerHTML = `<span class="font-script text-xl font-bold">${annivYear ? annivYear : 'Years'} of Love</span>`;
+                if(currentEventPhoto) {
+                    photoDisplay.innerHTML = `<img src="${currentEventPhoto}" class="h-48 w-48 object-cover rounded-lg border-4 border-white shadow-lg mx-auto">`;
+                    photoDisplay.classList.remove('hidden');
+                }
+            } else if (currentEventType === 'birthday') {
+                headerTxt.textContent = "Birthday Bash";
+                setCentralIcon('cake');
+                dName2.textContent = name2 ? `Turns ${name2}` : '';
+                if(!name2) dName2.classList.add('hidden');
+                separator.innerHTML = `<i data-lucide="star" class="w-4 h-4 fill-current"></i>`;
+                if(currentEventPhoto) {
+                    photoDisplay.innerHTML = `<img src="${currentEventPhoto}" class="h-48 w-48 object-cover rounded-lg border-4 border-white shadow-lg mx-auto">`;
+                    photoDisplay.classList.remove('hidden');
+                }
+            } else if (currentEventType === 'opening') {
+                headerTxt.textContent = "Grand Opening";
+                setCentralIcon('store');
+                dName2.textContent = name2 || '';
+                if(!name2) dName2.classList.add('hidden');
+                separator.innerHTML = `<div class="h-[1px] w-12 bg-current opacity-50"></div>`;
+                invitePrefix.textContent = "We cordially invite"; 
+                if(currentEventPhoto) {
+                    photoDisplay.innerHTML = `<img src="${currentEventPhoto}" class="h-48 w-48 object-cover rounded-lg border-4 border-white shadow-lg mx-auto">`;
+                    photoDisplay.classList.remove('hidden');
+                }
+            }
+
+            document.getElementById('display-guest').textContent = guest || 'Guest Name';
+            document.getElementById('display-venue').textContent = venue || 'Venue Address';
+            document.getElementById('display-time').textContent = time || 'Time';
+            document.getElementById('display-message').textContent = message || 'Message...';
+            document.getElementById('display-date').textContent = formattedDate;
+            lucide.createIcons();
+        }
+
+        // --- CAPTCHA LOGIC ---
+        function generateCaptcha() { const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'; let code = ''; for (let i = 0; i < 6; i++) { code += chars[Math.floor(Math.random() * chars.length)]; } return code; }
+        
+        function drawCaptcha() {
+            captchaCode = generateCaptcha();
+            const canvas = document.getElementById('captcha-canvas');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#f3f4f6'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = '24px monospace'; ctx.fillStyle = '#be123c'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+            ctx.fillText(captchaCode, canvas.width / 2, canvas.height / 2);
+            for(let i=0; i<5; i++) { ctx.beginPath(); ctx.moveTo(Math.random()*140, Math.random()*40); ctx.lineTo(Math.random()*140, Math.random()*40); ctx.strokeStyle = '#cbd5e1'; ctx.stroke(); }
+        }
+
+        function drawSignupCaptcha() {
+            signupCaptchaCode = generateCaptcha();
+            const canvas = document.getElementById('signup-captcha-canvas');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#f3f4f6'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = '24px monospace'; ctx.fillStyle = '#be123c'; ctx.textBaseline = 'middle'; ctx.textAlign = 'center';
+            ctx.fillText(signupCaptchaCode, canvas.width / 2, canvas.height / 2);
+            for(let i=0; i<5; i++) { ctx.beginPath(); ctx.moveTo(Math.random()*140, Math.random()*40); ctx.lineTo(Math.random()*140, Math.random()*40); ctx.strokeStyle = '#cbd5e1'; ctx.stroke(); }
+        }
+
+        // AUTH STATE & INITIALIZATION
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                const metaStr = localStorage.getItem('user_meta_' + user.uid);
+                if(metaStr) currentUserMeta = JSON.parse(metaStr);
+                currentProfileImage = localStorage.getItem('user_pfp_' + user.uid) || "";
+                updateProfileUI(user);
+                renderDesignGrid();
+                const current = document.querySelector('div[id^="screen-"]:not(.hidden)').id;
+                if(current.includes('login') || current.includes('signup') || current.includes('forgot')) { goToScreen('welcome'); }
+                document.getElementById('profile-component').classList.remove('hidden');
+            } else {
+                goToScreen('login');
+                document.getElementById('profile-component').classList.add('hidden');
+                setTimeout(drawCaptcha, 100);
+            }
+        });
+
+        function updateProfileUI(user) { document.getElementById('menu-user-name').textContent = user.displayName || user.email; const headerImg = document.getElementById('header-profile-img'); const headerIcon = document.getElementById('header-profile-icon'); if(currentProfileImage) { headerImg.src = currentProfileImage; headerImg.classList.remove('hidden'); headerIcon.classList.add('hidden'); } else { headerImg.classList.add('hidden'); headerIcon.classList.remove('hidden'); } }
+        
+        // Navigation & Profile
+        function toggleProfileMenu() { document.getElementById('profile-dropdown').classList.toggle('hidden'); }
+        document.addEventListener('click', (e) => { const c = document.getElementById('profile-component'); const m = document.getElementById('profile-dropdown'); if (c && !c.contains(e.target) && !m.classList.contains('hidden')) m.classList.add('hidden'); });
+        function openEditProfile() { toggleProfileMenu(); const user = auth.currentUser; if(!user) return; document.getElementById('edit-name').value = user.displayName || ""; document.getElementById('edit-email').value = user.email || ""; document.getElementById('edit-mobile').value = currentUserMeta.mobile || ""; document.getElementById('edit-village').value = currentUserMeta.village || ""; document.getElementById('edit-po').value = currentUserMeta.postOffice || ""; document.getElementById('edit-pincode').value = currentUserMeta.pincode || ""; const editStateSel = document.getElementById('edit-state'); editStateSel.innerHTML = '<option value="">Select State</option>'; for (let state in indianStates) { let opt = document.createElement('option'); opt.value = state; opt.text = state; if(currentUserMeta.state === state) opt.selected = true; editStateSel.add(opt); } populateDistricts('edit'); if(currentUserMeta.district) document.getElementById('edit-district').value = currentUserMeta.district; const imgPrev = document.getElementById('edit-profile-img-preview'); const iconPrev = document.getElementById('edit-profile-icon'); if(currentProfileImage) { imgPrev.src = currentProfileImage; imgPrev.classList.remove('hidden'); iconPrev.classList.add('hidden'); } else { imgPrev.classList.add('hidden'); iconPrev.classList.remove('hidden'); } document.getElementById('modal-edit-profile').classList.remove('hidden'); }
+        function handleImageSelect(input) { if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { const base64 = e.target.result; document.getElementById('edit-profile-img-preview').src = base64; document.getElementById('edit-profile-img-preview').classList.remove('hidden'); document.getElementById('edit-profile-icon').classList.add('hidden'); input.dataset.tempBase64 = base64; }; reader.readAsDataURL(input.files[0]); } }
+        function handleSaveProfile(e) { e.preventDefault(); const user = auth.currentUser; if(!user) return; const newName = document.getElementById('edit-name').value; const newMobile = document.getElementById('edit-mobile').value; const newVillage = document.getElementById('edit-village').value; const newPO = document.getElementById('edit-po').value; const newState = document.getElementById('edit-state').value; const newDist = document.getElementById('edit-district').value; const newPin = document.getElementById('edit-pincode').value; const fileInput = document.querySelector('input[type="file"]'); if(fileInput.dataset.tempBase64) { currentProfileImage = fileInput.dataset.tempBase64; localStorage.setItem('user_pfp_' + user.uid, currentProfileImage); } updateProfile(user, { displayName: newName }).then(() => { currentUserMeta = { ...currentUserMeta, name: newName, mobile: newMobile, village: newVillage, postOffice: newPO, state: newState, district: newDist, pincode: newPin }; localStorage.setItem('user_meta_' + user.uid, JSON.stringify(currentUserMeta)); updateProfileUI(user); document.getElementById('modal-edit-profile').classList.add('hidden'); alert("Profile Updated Successfully!"); }).catch(err => alert("Error updating profile: " + err.message)); }
+        function triggerPasswordReset() { const user = auth.currentUser; if(user && user.email) { if(confirm("Send password reset email to " + user.email + "?")) { sendPasswordResetEmail(auth, user.email).then(() => alert("Email sent!")).catch(e => alert(e.message)); } } }
+        
+        function handleLogin(e) {
+            e.preventDefault(); const email = document.getElementById('login-email').value; const pass = document.getElementById('login-password').value; const captchaInput = document.getElementById('captcha-input').value; const errorMsg = document.getElementById('login-error'); const loader = document.getElementById('login-loader');
+            if(captchaInput !== captchaCode) { errorMsg.textContent = "Invalid Captcha Code"; errorMsg.classList.remove('hidden'); drawCaptcha(); return; }
+            errorMsg.classList.add('hidden'); loader.classList.remove('hidden');
+            signInWithEmailAndPassword(auth, email, pass).then(() => loader.classList.add('hidden')).catch((error) => { loader.classList.add('hidden'); errorMsg.textContent = "Login failed: " + error.code; errorMsg.classList.remove('hidden'); drawCaptcha(); });
+        }
+        
+        function handleSignupStep1(e) { e.preventDefault(); tempSignupData.name = document.getElementById('signup-name').value; tempSignupData.email = document.getElementById('signup-email').value; tempSignupData.mobile = document.getElementById('signup-mobile').value; goToScreen('signup-2'); }
+        function handleSignupStep2(e) { e.preventDefault(); tempSignupData.village = document.getElementById('signup-village').value; tempSignupData.postOffice = document.getElementById('signup-po').value; tempSignupData.state = document.getElementById('signup-state').value; tempSignupData.district = document.getElementById('signup-district').value; tempSignupData.pincode = document.getElementById('signup-pincode').value; goToScreen('signup-3'); }
+        
+        function handleSignupStep3(e) {
+            e.preventDefault(); const pass = document.getElementById('signup-password').value; const confirmPass = document.getElementById('signup-confirm-password').value; const errorMsg = document.getElementById('signup-error'); const loader = document.getElementById('signup-loader'); const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$*&])[A-Za-z\d@#$*&]{8,25}$/;
+            const captchaInput = document.getElementById('signup-captcha-input').value;
+            
+            if(captchaInput !== signupCaptchaCode) { errorMsg.textContent = "Invalid Captcha Code"; errorMsg.classList.remove('hidden'); drawSignupCaptcha(); return; }
+            if (pass !== confirmPass) { errorMsg.textContent = "Passwords do not match!"; errorMsg.classList.remove('hidden'); return; }
+            if (!passwordRegex.test(pass)) { errorMsg.textContent = "Password requirements not met."; errorMsg.classList.remove('hidden'); return; }
+            
+            loader.classList.remove('hidden'); errorMsg.classList.add('hidden');
+            createUserWithEmailAndPassword(auth, tempSignupData.email, pass).then((userCredential) => { return updateProfile(userCredential.user, { displayName: tempSignupData.name }); }).then(() => { const extraData = { ...tempSignupData }; delete extraData.password; localStorage.setItem('user_meta_' + auth.currentUser.uid, JSON.stringify(extraData)); loader.classList.add('hidden'); alert("Account created!"); }).catch((error) => { loader.classList.add('hidden'); errorMsg.textContent = error.message; errorMsg.classList.remove('hidden'); drawSignupCaptcha(); });
+        }
+        
+        function handleReset(e) { e.preventDefault(); const email = document.getElementById('reset-email').value; sendPasswordResetEmail(auth, email).then(() => alert("Reset link sent!")).catch((error) => alert(error.message)); }
+        function logout() { signOut(auth).then(() => { goToScreen('login'); location.reload(); }); }
+        function confirmDeleteAccount() { document.getElementById('modal-delete').classList.remove('hidden'); }
+        function handleDeleteAccount() { const user = auth.currentUser; if (user) { deleteUser(user).then(() => { localStorage.removeItem('user_meta_' + user.uid); localStorage.removeItem('user_pfp_' + user.uid); alert('Account deleted.'); location.reload(); }).catch((error) => { if(error.code === 'auth/requires-recent-login') { alert('Please re-login to delete account.'); logout(); } else alert(error.message); }); } }
+
+        // --- STATE & DISTRICT DATA ---
+        const indianStates = {
+            "Select State": ["Select District"],
+            "Andhra Pradesh": ["Anantapur", "Chittoor", "East Godavari", "Guntur", "Krishna", "Kurnool", "Nellore", "Prakasam", "Srikakulam", "Visakhapatnam", "Vizianagaram", "West Godavari", "YSR Kadapa"],
+            "Arunachal Pradesh": ["Tawang", "West Kameng", "East Kameng", "Papum Pare", "Lower Subansiri", "Upper Subansiri", "West Siang", "East Siang", "Upper Siang", "Lower Dibang Valley", "Upper Dibang Valley", "Lohit", "Namsai", "Tirap", "Changlang", "Kamle", "Kra Daadi", "Shi Yomi", "Lower Siang", "Pakke Kessang"],
+            "Assam": ["Baksa", "Barpeta", "Biswanath", "Bongaigaon", "Cachar", "Charaideo", "Chirang", "Darrang", "Dhemaji", "Dhubri", "Dibrugarh", "Goalpara", "Golaghat", "Hailakandi", "Hojai", "Jorhat", "Kamrup Metropolitan", "Kamrup Rural", "Karbi Anglong", "Karimganj", "Kokrajhar", "Lakhimpur", "Majuli", "Morigaon", "Nagaon", "Nalbari", "Sivasagar", "Sonitpur", "South Salmara-Mankachar", "Tinsukia", "Udalguri", "West Karbi Anglong"],
+            "Bihar": ["Araria", "Arwal", "Aurangabad", "Banka", "Begusarai", "Bhagalpur", "Bhojpur", "Buxar", "Darbhanga", "East Champaran", "Gaya", "Gopalganj", "Jamui", "Jehanabad", "Kaimur", "Katihar", "Khagaria", "Kishanganj", "Lakhisarai", "Madhepura", "Madhubani", "Munger", "Muzaffarpur", "Nalanda", "Nawada", "Patna", "Purnia", "Rohtas", "Saharsa", "Samastipur", "Saran", "Sheikhpura", "Sheohar", "Sitamarhi", "Siwan", "Supaul", "Vaishali", "West Champaran"],
+            "Chhattisgarh": ["Balod", "Baloda Bazar", "Balrampur", "Bastar", "Bemetara", "Bijapur", "Bilaspur", "Dantewada", "Dhamtari", "Durg", "Gariaband", "Janjgir-Champa", "Jashpur", "Kabirdham", "Kanker", "Kondagaon", "Korba", "Koriya", "Mahasamund", "Mungeli", "Narayanpur", "Raigarh", "Raipur", "Rajnandgaon", "Sukma", "Surajpur", "Surguja"],
+            "Goa": ["North Goa", "South Goa"],
+            "Gujarat": ["Ahmedabad", "Amreli", "Anand", "Aravalli", "Banaskantha", "Bharuch", "Bhavnagar", "Botad", "Chhota Udaipur", "Dahod", "Dang", "Devbhoomi Dwarka", "Gandhinagar", "Gir Somnath", "Jamnagar", "Junagadh", "Kheda", "Kutch", "Mahisagar", "Mehsana", "Morbi", "Narmada", "Navsari", "Panchmahal", "Patan", "Porbandar", "Rajkot", "Sabarkantha", "Surat", "Surendranagar", "Tapi", "Vadodara", "Valsad"],
+            "Haryana": ["Ambala", "Bhiwani", "Charkhi Dadri", "Faridabad", "Fatehabad", "Gurgaon", "Hisar", "Jhajjar", "Jind", "Kaithal", "Karnal", "Kurukshetra", "Mahendragarh", "Mewat", "Palwal", "Panchkula", "Panipat", "Rewari", "Rohtak", "Sirsa", "Sonipat", "Yamunanagar"],
+            "Himachal Pradesh": ["Bilaspur", "Chamba", "Hamirpur", "Kangra", "Kinnaur", "Kullu", "Lahaul and Spiti", "Mandi", "Shimla", "Sirmaur", "Solan", "Una"],
+            "Jharkhand": ["Bokaro", "Chatra", "Deoghar", "Dhanbad", "Dumka", "East Singhbhum", "Garhwa", "Giridih", "Godda", "Gumla", "Hazaribagh", "Jamtara", "Khunti", "Koderma", "Latehar", "Lohardaga", "Pakur", "Palamu", "Ramgarh", "Ranchi", "Sahebganj", "Saraikela-Kharsawan", "Simdega", "West Singhbhum"],
+            "Karnataka": ["Bagalkot", "Ballari", "Belagavi", "Bengaluru Rural", "Bengaluru Urban", "Bidar", "Chamarajanagar", "Chikkaballapur", "Chikkamagaluru", "Chitradurga", "Dakshina Kannada", "Davanagere", "Dharwad", "Gadag", "Kalaburagi", "Hassan", "Haveri", "Kodagu", "Kolar", "Koppal", "Mandya", "Mysuru", "Raichur", "Ramanagara", "Shivamogga", "Tumakuru", "Udupi", "Uttara Kannada", "Vijayapura", "Yadgir"],
+            "Kerala": ["Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam", "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta", "Thiruvananthapuram", "Thrissur", "Wayanad"],
+            "Madhya Pradesh": ["Bhopal", "Indore", "Jabalpur", "Gwalior", "Ujjain", "Sagar", "Rewa", "Mandsaur", "Khargone", "Satna", "Vidisha", "Chhindwara", "Damoh", "Dewas", "Hoshangabad", "Khandwa", "Morena", "Rajgarh", "Sehore", "Shahdol", "Shivpuri", "Tikamgarh"],
+            "Maharashtra": ["Ahmednagar", "Akola", "Amravati", "Aurangabad", "Beed", "Bhandara", "Buldhana", "Chandrapur", "Dhule", "Gadchiroli", "Gondia", "Hingoli", "Jalgaon", "Jalna", "Kolhapur", "Latur", "Mumbai City", "Mumbai Suburban", "Nagpur", "Nanded", "Nandurbar", "Nashik", "Osmanabad", "Palghar", "Parbhani", "Pune", "Raigad", "Ratnagiri", "Sangli", "Satara", "Sindhudurg", "Solapur", "Thane", "Wardha", "Washim", "Yavatmal"],
+            "Manipur": ["Bishnupur", "Chandel", "Churachandpur", "Imphal East", "Imphal West", "Jiribam", "Kakching", "Kamjong", "Kangpokpi", "Noney", "Pherzawl", "Senapati", "Tamenglong", "Tengnoupal", "Thoubal", "Ukhrul"],
+            "Meghalaya": ["East Garo Hills", "East Jaintia Hills", "East Khasi Hills", "North Garo Hills", "Ri-Bhoi", "South Garo Hills", "South West Garo Hills", "South West Khasi Hills", "West Garo Hills", "West Jaintia Hills", "West Khasi Hills"],
+            "Mizoram": ["Aizawl", "Champhai", "Hnahthial", "Kolasib", "Lawngtlai", "Lunglei", "Mamit", "Saiha", "Serchhip", "Siaha"],
+            "Nagaland": ["Dimapur", "Kiphire", "Kohima", "Longleng", "Mokokchung", "Mon", "Peren", "Phek", "Tuensang", "Wokha", "Zunheboto", "Noklak", "Shamator", "Tseminyu"],
+            "Odisha": ["Angul", "Balangir", "Balasore", "Bargarh", "Bhadrak", "Boudh", "Cuttack", "Deogarh", "Dhenkanal", "Gajapati", "Ganjam", "Jagatsinghpur", "Jajpur", "Jharsuguda", "Kalahandi", "Kandhamal", "Kendrapara", "Keonjhar", "Khordha", "Koraput", "Malkangiri", "Mayurbhanj", "Nabarangpur", "Nayagarh", "Nuapada", "Puri", "Rayagada", "Sambalpur", "Subarnapur", "Sundergarh"],
+            "Punjab": ["Amritsar", "Barnala", "Bathinda", "Faridkot", "Fatehgarh Sahib", "Fazilka", "Firozpur", "Gurdaspur", "Hoshiarpur", "Jalandhar", "Kapurthala", "Ludhiana", "Mansa", "Moga", "Muktsar", "Pathankot", "Patiala", "Rupnagar", "Sahibzada Ajit Singh Nagar", "Sangrur", "Shahid Bhagat Singh Nagar", "Tarn Taran"],
+            "Rajasthan": ["Ajmer", "Alwar", "Banswara", "Baran", "Barmer", "Bharatpur", "Bhilwara", "Bikaner", "Bundi", "Chittorgarh", "Churu", "Dausa", "Dholpur", "Dungarpur", "Hanumangarh", "Jaipur", "Jaisalmer", "Jalore", "Jhalawar", "Jhunjhunu", "Jodhpur", "Karauli", "Kota", "Nagaur", "Pali", "Pratapgarh", "Rajsamand", "Sawai Madhopur", "Sikar", "Sirohi", "Sri Ganganagar", "Tonk", "Udaipur"],
+            "Sikkim": ["East Sikkim", "North Sikkim", "South Sikkim", "West Sikkim"],
+            "Tamil Nadu": ["Ariyalur", "Chengalpattu", "Chennai", "Coimbatore", "Cuddalore", "Dharmapuri", "Dindigul", "Erode", "Kallakurichi", "Kanchipuram", "Kanyakumari", "Karur", "Krishnagiri", "Madurai", "Nagapattinam", "Namakkal", "Nilgiris", "Perambalur", "Pudukkottai", "Ramanathapuram", "Ranipet", "Salem", "Sivaganga", "Tenkasi", "Thanjavur", "Theni", "Thoothukudi", "Tiruchirappalli", "Tirunelveli", "Tirupathur", "Tiruppur", "Tiruvallur", "Tiruvannamalai", "Tiruvarur", "Vellore", "Viluppuram", "Virudhunagar"],
+            "Telangana": ["Adilabad", "Bhadradri Kothagudem", "Hyderabad", "Jagtial", "Jangaon", "Jayashankar Bhupalpally", "Jogulamba Gadwal", "Kamareddy", "Karimnagar", "Khammam", "Kumuram Bheem", "Mahabubabad", "Mahabubnagar", "Mancherial", "Medak", "Medchal-Malkajgiri", "Mulugu", "Nagarkurnool", "Nalgonda", "Narayanpet", "Nirmal", "Nizamabad", "Peddapalli", "Rajanna Sircilla", "Ranga Reddy", "Sangareddy", "Siddipet", "Suryapet", "Vikarabad", "Wanaparthy", "Warangal Rural", "Warangal Urban", "Yadadri Bhuvanagiri"],
+            "Tripura": ["Dhalai", "Gomati", "Khowai", "North Tripura", "Sepahijala", "South Tripura", "Unakoti", "West Tripura"],
+            "Uttar Pradesh": ["Agra", "Aligarh", "Ambedkar Nagar", "Amethi", "Amroha", "Auraiya", "Ayodhya", "Azamgarh", "Badaun", "Baghpat", "Bahraich", "Ballia", "Balrampur", "Banda", "Barabanki", "Bareilly", "Basti", "Bijnor", "Bulandshahr", "Chandauli", "Chitrakoot", "Deoria", "Etah", "Etawah", "Farrukhabad", "Fatehpur", "Firozabad", "Gautam Buddha Nagar", "Ghaziabad", "Ghazipur", "Gonda", "Gorakhpur", "Hamirpur", "Hapur", "Hardoi", "Hathras", "Jalaun", "Jaunpur", "Jhansi", "Kannauj", "Kanpur Dehat", "Kanpur Nagar", "Kasganj", "Kaushambi", "Kheri", "Kushinagar", "Lalitpur", "Lucknow", "Maharajganj", "Mahoba", "Mainpuri", "Mathura", "Mau", "Meerut", "Mirzapur", "Moradabad", "Muzaffarnagar", "Pilibhit", "Pratapgarh", "Prayagraj", "Raebareli", "Rampur", "Saharanpur", "Sambhal", "Sant Kabir Nagar", "Sant Ravidas Nagar", "Shahjahanpur", "Shamli", "Shrawasti", "Siddharthnagar", "Sitapur", "Sonbhadra", "Sultanpur", "Unnao", "Varanasi"],
+            "Uttarakhand": ["Almora", "Bageshwar", "Chamoli", "Champawat", "Dehradun", "Haridwar", "Nainital", "Pauri Garhwal", "Pithoragarh", "Rudraprayag", "Tehri Garhwal", "Udham Singh Nagar", "Uttarkashi"],
+            "West Bengal": ["Alipurduar", "Bankura", "Birbhum", "Cooch Behar", "Dakshin Dinajpur", "Darjeeling", "Hooghly", "Howrah", "Jalpaiguri", "Jhargram", "Kalimpong", "Kolkata", "Malda", "Murshidabad", "Nadia", "North 24 Parganas", "Paschim Bardhaman", "Paschim Medinipur", "Purba Bardhaman", "Purba Medinipur", "Purulia", "South 24 Parganas", "Uttar Dinajpur"],
+            
+            // Union Territories (UTs)
+            "Andaman and Nicobar Islands": ["Nicobar", "North and Middle Andaman", "South Andaman"],
+            "Chandigarh": ["Chandigarh"],
+            "Dadra and Nagar Haveli and Daman and Diu": ["Daman", "Diu", "Dadra and Nagar Haveli"],
+            "Delhi (National Capital Territory)": ["Central Delhi", "East Delhi", "New Delhi", "North Delhi", "North East Delhi", "North West Delhi", "Shahdara", "South Delhi", "South East Delhi", "South West Delhi", "West Delhi"],
+            "Jammu and Kashmir": ["Anantnag", "Bandipora", "Baramulla", "Budgam", "Doda", "Ganderbal", "Jammu", "Kathua", "Kishtwar", "Kulgam", "Kupwara", "Poonch", "Pulwama", "Rajouri", "Ramban", "Reasi", "Samba", "Shopian", "Srinagar", "Udhampur"],
+            "Ladakh": ["Kargil", "Leh"],
+            "Lakshadweep": ["Lakshadweep"],
+            "Puducherry": ["Karaikal", "Mahe", "Puducherry", "Yanam"]
+        };
+        const stateSelect = document.getElementById('signup-state'); for (let state in indianStates) { let opt = document.createElement('option'); opt.value = state; opt.text = state; stateSelect.add(opt); }
+        function populateDistricts(prefix) { const stateId = prefix === 'edit' ? 'edit-state' : 'signup-state'; const distId = prefix === 'edit' ? 'edit-district' : 'signup-district'; const districtSelect = document.getElementById(distId); const selectedState = document.getElementById(stateId).value; districtSelect.innerHTML = '<option value="">Select District</option>'; if (selectedState && indianStates[selectedState]) { districtSelect.disabled = false; districtSelect.classList.remove('bg-stone-100', 'cursor-not-allowed'); indianStates[selectedState].forEach(d => { let opt = document.createElement('option'); opt.value = d; opt.text = d; districtSelect.add(opt); }); } else { districtSelect.disabled = true; districtSelect.classList.add('bg-stone-100', 'cursor-not-allowed'); } }
+        
+        function goToScreen(screenName) { 
+            document.querySelectorAll('div[id^="screen-"]').forEach(el => el.classList.add('hidden')); 
+            const target = document.getElementById('screen-' + screenName); 
+            if(target) target.classList.remove('hidden'); 
+            window.scrollTo(0, 0);
+            if(screenName === 'signup-3') {
+                 setTimeout(drawSignupCaptcha, 100); 
+            }
+        }
+
+        document.getElementById('form-login').onsubmit = handleLogin;
+        document.getElementById('form-reset').onsubmit = handleReset;
+        document.getElementById('form-signup-1').onsubmit = handleSignupStep1;
+        document.getElementById('form-signup-2').onsubmit = handleSignupStep2;
+        document.getElementById('form-signup-3').onsubmit = handleSignupStep3;
+        lucide.createIcons();
+    </script>
+</body>
+</html>
